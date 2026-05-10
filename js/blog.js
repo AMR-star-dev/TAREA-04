@@ -1,3 +1,10 @@
+const loggedUser = localStorage.getItem("loggedUser");
+
+if(!loggedUser){
+
+    window.location.href = "login.html";
+
+}
 const postForm = document.getElementById("postForm");
 const postsContainer = document.getElementById("postsContainer");
 
