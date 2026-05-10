@@ -5,6 +5,7 @@ if(!loggedUser){
     window.location.href = "login.html";
 
 }
+
 const postForm = document.getElementById("postForm");
 const postsContainer = document.getElementById("postsContainer");
 
@@ -65,6 +66,10 @@ function renderPosts(){
                     <button onclick="deletePost(${post.id})">
                         Eliminar
                     </button>
+
+                    <a href="post.html?id=${post.id}">
+                        <button>Ver Más</button>
+                    </a>
 
                 </div>
 
