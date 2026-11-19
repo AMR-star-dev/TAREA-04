@@ -762,4 +762,3 @@
   fontsReady.then(start, start);
   frame();
 })();
-

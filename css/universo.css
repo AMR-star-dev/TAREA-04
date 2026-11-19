@@ -178,4 +178,3 @@ body {
   position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 30;
   padding: 24px; text-align: center; font: italic 600 26px var(--display); color: var(--ink); background: var(--space);
 }
-
