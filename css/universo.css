@@ -1,0 +1,181 @@
+/* Concepto: lienzo 3D a pantalla completa. Un corazón de partículas late en el centro de una galaxia espiral
+   y las frases orbitan a su alrededor. Quien crea la página personaliza todo desde un panel; quien la recibe
+   entra por una pantalla de bienvenida y solo puede explorar. */
+:root {
+  --space: #07030f;
+  --ink: #fff0f5;
+  --ink-soft: #cdb6d4;
+  --accent: #ff5c8a;
+  --accent-rgb: 255, 92, 138;
+  --glowbg: #1c0b33;
+  --glow2: rgba(143, 107, 255, 0.16);
+  --glass: rgba(22, 11, 38, 0.72);
+  --line: rgba(255, 190, 220, 0.26);
+  --display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--space);
+  background-image:
+    radial-gradient(ellipse at 50% 55%, var(--glowbg) 0%, transparent 62%),
+    radial-gradient(ellipse at 15% 10%, var(--glow2) 0%, transparent 45%);
+  color: var(--ink);
+  font: 400 14px/1.4 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+[hidden] { display: none !important; }
+
+#stage { position: fixed; inset: 0; touch-action: none; cursor: grab; }
+#stage:active { cursor: grabbing; }
+#stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+/* ---------- botones y campos ---------- */
+.btn {
+  font: 500 13px var(--body);
+  color: var(--ink);
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 9px 15px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  transition: border-color 0.2s, background 0.2s;
+}
+.btn:hover { border-color: var(--accent); }
+.btn[aria-pressed="true"] { background: rgba(var(--accent-rgb), 0.24); border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #1d0710; font-weight: 600; justify-content: center; padding: 11px 18px; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- barras ---------- */
+.bar {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; gap: 8px;
+  pointer-events: none; z-index: 5;
+}
+.bar > * { pointer-events: auto; }
+.top { top: calc(14px + env(safe-area-inset-top, 0px)); justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
+.viewer .top { justify-content: flex-end; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.bottom { bottom: calc(14px + env(safe-area-inset-bottom, 0px)); flex-direction: column; align-items: center; text-align: center; }
+
+#caption {
+  font: italic 600 clamp(24px, 5vw, 40px)/1.2 var(--display);
+  color: var(--ink);
+  text-shadow: 0 0 24px rgba(var(--accent-rgb), 0.7);
+  max-width: 22em; min-height: 1.2em;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+#caption.on { opacity: 1; transform: none; }
+#hint { color: var(--ink-soft); font-size: 12px; letter-spacing: 0.04em; }
+
+/* ---------- mensaje del remitente ---------- */
+.msgcard {
+  position: relative;
+  max-width: min(30em, 100%);
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px 40px 14px 18px;
+  text-align: left;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  opacity: 0; transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.msgcard.on { opacity: 1; transform: none; }
+.msgcard p { margin: 0; }
+#msgText { font: italic 600 clamp(20px, 4.4vw, 28px)/1.25 var(--display); overflow-wrap: anywhere; }
+#msgFrom { margin-top: 6px; color: var(--ink-soft); font-size: 13px; }
+.msgcard .x {
+  position: absolute; top: 6px; right: 6px; width: 30px; height: 30px;
+  border: 0; background: transparent; color: var(--ink-soft); font-size: 20px; line-height: 1; cursor: pointer; border-radius: 50%;
+}
+.msgcard .x:hover { color: var(--ink); }
+.msgcard .x:focus-visible { outline: 2px solid var(--accent); }
+
+/* ---------- bienvenida (quien recibe el enlace) ---------- */
+.intro {
+  position: fixed; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  padding: max(24px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(24px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(ellipse at center, rgba(7, 3, 15, 0.5), rgba(7, 3, 15, 0.85));
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: opacity 1s ease, visibility 1s;
+}
+.intro.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+.intro-inner { display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 30em; min-width: 0; }
+.eyebrow { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); }
+.intro h1 {
+  margin: 0;
+  font: italic 600 clamp(48px, 13vw, 96px)/1.05 var(--display);
+  text-shadow: 0 0 40px rgba(var(--accent-rgb), 0.7);
+  text-wrap: balance; overflow-wrap: anywhere;
+}
+.from { color: var(--ink-soft); font-size: 15px; }
+.intro .btn.primary { margin-top: 10px; padding: 13px 26px; font-size: 15px; }
+
+/* ---------- panel del creador ---------- */
+.panel {
+  position: fixed; z-index: 8;
+  left: max(16px, env(safe-area-inset-left, 0px));
+  top: calc(64px + env(safe-area-inset-top, 0px));
+  width: min(370px, calc(100vw - 32px));
+  max-height: calc(100% - 150px);
+  overflow-y: auto;
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 14px;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+.panel h2 { margin: 0; font: italic 600 28px/1.1 var(--display); }
+.small { margin: 0; font-size: 12.5px; color: var(--ink-soft); line-height: 1.45; }
+.row { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lbl { font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-soft); }
+.panel input[type="text"], .panel input[type="date"], .panel textarea {
+  width: 100%; min-width: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line); border-radius: 10px;
+  color: var(--ink); font: 400 14px var(--body);
+  padding: 9px 11px; color-scheme: dark;
+}
+.panel textarea { resize: vertical; min-height: 72px; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-soft); }
+.swatches { display: flex; gap: 12px; flex-wrap: wrap; }
+.sw { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; color: var(--ink-soft); font: 400 11px var(--body); cursor: pointer; padding: 2px; }
+.sw i { width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent; box-shadow: 0 0 0 1px var(--line); }
+.sw[aria-checked="true"] { color: var(--ink); }
+.sw[aria-checked="true"] i { border-color: var(--ink); }
+.sw:focus-visible { outline: 2px solid var(--accent); border-radius: 10px; }
+.result { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.result input { font-size: 12.5px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+  .panel {
+    left: 0; right: 0; top: auto; bottom: 0; width: auto; max-height: 66%;
+    border-radius: 18px 18px 0 0;
+    padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #caption, .msgcard, .intro { transition: none; }
+}
+
+#fallback {
+  position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 30;
+  padding: 24px; text-align: center; font: italic 600 26px var(--display); color: var(--ink); background: var(--space);
+}
+
